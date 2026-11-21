@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,8 +33,25 @@ jobs:
       - name: Build Project
         run: mvn clean package
 
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name azptstacraks01
+
       - name: Build Docker Image
-        run: docker build -t calculator-app:${{ github.run_number }} .
+        run: |
+          docker build -t azptstacraks01.azurecr.io/calculator-app:${{ github.run_number }} .
+          docker tag azptstacraks01.azurecr.io/calculator-app:${{ github.run_number }} azptstacraks01.azurecr.io/calculator-app:latest
+
+      - name: Push Docker Image
+        run: |
+          docker push azptstacraks01.azurecr.io/calculator-app:${{ github.run_number }}
+          docker push azptstacraks01.azurecr.io/calculator-app:latest
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
