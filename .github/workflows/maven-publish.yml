@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
@@ -41,12 +40,13 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to ACR
-        run: az acr login --name azptstacraks01
+        run: |
+          az acr login --name azptstacraks01
 
-        - name: Verify Login
-          run: |
-            az account show
-            az acr check-health --name <acr-name>
+      - name: Verify Azure Context
+        run: |
+          az account show
+          az acr show --name azptstacraks01
 
       - name: Build Docker Image
         run: |
