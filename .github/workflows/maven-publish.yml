@@ -43,6 +43,11 @@ jobs:
       - name: Login to ACR
         run: az acr login --name azptstacraks01
 
+        - name: Verify Login
+          run: |
+            az account show
+            az acr check-health --name <acr-name>
+
       - name: Build Docker Image
         run: |
           docker build -t azptstacraks01.azurecr.io/calculator-app:${{ github.run_number }} .
