@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
@@ -39,14 +40,28 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Login to ACR
+      - name: Get ACR Token
+        id: acr-token
         run: |
-          az acr login --name azptstacraks01
+          TOKEN=$(az acr login \
+            --name azptstacraks01 \
+            --expose-token \
+            --output tsv \
+            --query accessToken)
+
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Docker Login to ACR
+        run: |
+          docker login azptstacraks01.azurecr.io \
+            --username 00000000-0000-0000-0000-000000000000 \
+            --password "$TOKEN"
 
       - name: Verify Azure Context
         run: |
           az account show
           az acr show --name azptstacraks01
+          az acr repository list --name azptstacraks01
 
       - name: Build Docker Image
         run: |
